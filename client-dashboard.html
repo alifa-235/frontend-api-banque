@@ -104,13 +104,17 @@
         <div class="bg-white rounded-2xl p-6 max-w-md w-full">
             <h3 class="text-xl font-bold mb-4">💰 Dépôt</h3>
             <form onsubmit="executeDeposit(event)">
-                <input type="number" id="depositAmount" placeholder="Montant" required min="100" step="100"
+                <input type="number" id="depositAmount" placeholder="Montant (XAF)" required min="100" step="100"
                        class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
                 <input type="text" id="depositDesc" placeholder="Description (optionnel)"
                        class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
                 <div class="flex gap-2">
-                    <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-xl flex-1 hover:bg-green-700">Effectuer</button>
-                    <button type="button" onclick="closeModal('deposit')" class="bg-gray-300 px-6 py-2 rounded-xl hover:bg-gray-400">Annuler</button>
+                    <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-xl flex-1 hover:bg-green-700">
+                        <i class="fas fa-check-circle mr-2"></i> Effectuer
+                    </button>
+                    <button type="button" onclick="closeModal('deposit')" class="bg-gray-300 px-6 py-2 rounded-xl hover:bg-gray-400">
+                        Annuler
+                    </button>
                 </div>
             </form>
         </div>
@@ -121,13 +125,17 @@
         <div class="bg-white rounded-2xl p-6 max-w-md w-full">
             <h3 class="text-xl font-bold mb-4">🏦 Retrait</h3>
             <form onsubmit="executeWithdraw(event)">
-                <input type="number" id="withdrawAmount" placeholder="Montant" required min="100" step="100"
+                <input type="number" id="withdrawAmount" placeholder="Montant (XAF)" required min="100" step="100"
                        class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
                 <input type="text" id="withdrawDesc" placeholder="Description (optionnel)"
                        class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
                 <div class="flex gap-2">
-                    <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded-xl flex-1 hover:bg-red-700">Effectuer</button>
-                    <button type="button" onclick="closeModal('withdraw')" class="bg-gray-300 px-6 py-2 rounded-xl hover:bg-gray-400">Annuler</button>
+                    <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded-xl flex-1 hover:bg-red-700">
+                        <i class="fas fa-check-circle mr-2"></i> Effectuer
+                    </button>
+                    <button type="button" onclick="closeModal('withdraw')" class="bg-gray-300 px-6 py-2 rounded-xl hover:bg-gray-400">
+                        Annuler
+                    </button>
                 </div>
             </form>
         </div>
@@ -138,15 +146,29 @@
         <div class="bg-white rounded-2xl p-6 max-w-md w-full">
             <h3 class="text-xl font-bold mb-4">🔄 Virement</h3>
             <form onsubmit="executeTransfer(event)">
-                <input type="text" id="transferTo" placeholder="Email du destinataire" required
-                       class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
-                <input type="number" id="transferAmount" placeholder="Montant" required min="100" step="100"
-                       class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
-                <input type="text" id="transferDesc" placeholder="Description (optionnel)"
-                       class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email du destinataire *</label>
+                    <input type="email" id="transferTo" placeholder="email@destinataire.com" required
+                           class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
+                    <p class="text-xs text-gray-400 -mt-2 mb-3">Entrez l'email du compte destinataire</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Montant (XAF) *</label>
+                    <input type="number" id="transferAmount" placeholder="Montant" required min="100" step="100"
+                           class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <input type="text" id="transferDesc" placeholder="Description (optionnel)"
+                           class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
+                </div>
                 <div class="flex gap-2">
-                    <button type="submit" class="bg-purple-600 text-white px-6 py-2 rounded-xl flex-1 hover:bg-purple-700">Effectuer</button>
-                    <button type="button" onclick="closeModal('transfer')" class="bg-gray-300 px-6 py-2 rounded-xl hover:bg-gray-400">Annuler</button>
+                    <button type="submit" class="bg-purple-600 text-white px-6 py-2 rounded-xl flex-1 hover:bg-purple-700">
+                        <i class="fas fa-exchange-alt mr-2"></i> Effectuer
+                    </button>
+                    <button type="button" onclick="closeModal('transfer')" class="bg-gray-300 px-6 py-2 rounded-xl hover:bg-gray-400">
+                        Annuler
+                    </button>
                 </div>
             </form>
         </div>
@@ -168,10 +190,16 @@
     </div>
 
     <script>
-        // Configuration
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+
         const API_URL = 'https://banque-api-45tc.onrender.com';
 
-        // Utilitaires
+        // ============================================================
+        // UTILITAIRES
+        // ============================================================
+
         function getToken() { return localStorage.getItem('token'); }
         function getUser() { return JSON.parse(localStorage.getItem('user') || '{}'); }
 
@@ -197,6 +225,10 @@
             setTimeout(() => toast.remove(), 4000);
         }
 
+        // ============================================================
+        // API REQUEST
+        // ============================================================
+
         async function apiRequest(endpoint, method = 'GET', body = null) {
             const token = getToken();
             const options = {
@@ -208,20 +240,30 @@
             };
             if (body) options.body = JSON.stringify(body);
             
-            const response = await fetch(`${API_URL}${endpoint}`, options);
-            return await response.json();
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, options);
+                return await response.json();
+            } catch (error) {
+                showToast('❌ Erreur réseau', 'error');
+                return { success: false };
+            }
         }
 
-        // Chargement des données
+        // ============================================================
+        // CHARGEMENT DES DONNÉES
+        // ============================================================
+
         async function loadClientData() {
             const user = getUser();
             
+            // Afficher les infos utilisateur
             document.getElementById('userName').textContent = user.name || 'Client';
             document.getElementById('clientName').textContent = user.name || '-';
             document.getElementById('clientEmail').textContent = user.email || '-';
             document.getElementById('accountType').textContent = user.type || '-';
             document.getElementById('accountNumber').textContent = `Compte n° ${user.accountNumber || '-'}`;
             
+            // Statut
             const statusElement = document.getElementById('accountStatus');
             if (user.status === 'active') {
                 statusElement.innerHTML = '<span class="text-green-600">✓ Actif</span>';
@@ -229,13 +271,19 @@
                 statusElement.innerHTML = '<span class="text-red-600">✗ Inactif</span>';
             }
 
+            // Récupérer les données du compte
             const data = await apiRequest('/api/client/me');
             if (data.success) {
-                document.getElementById('balance').textContent = data.data.balance.toLocaleString() + ' XAF';
+                const account = data.data;
+                document.getElementById('balance').textContent = account.balance.toLocaleString() + ' XAF';
+                document.getElementById('accountInfo').textContent = `${account.type} - ${account.accountNumber}`;
             }
         }
 
-        // Historique
+        // ============================================================
+        // HISTORIQUE
+        // ============================================================
+
         async function viewHistory() {
             openModal('history');
             const container = document.getElementById('historyList');
@@ -259,11 +307,19 @@
             }
         }
 
-        // Dépôt
+        // ============================================================
+        // DÉPÔT
+        // ============================================================
+
         async function executeDeposit(e) {
             e.preventDefault();
             const amount = parseFloat(document.getElementById('depositAmount').value);
             const description = document.getElementById('depositDesc').value || 'Dépôt';
+
+            if (isNaN(amount) || amount <= 0) {
+                showToast('❌ Montant invalide', 'error');
+                return;
+            }
 
             const data = await apiRequest('/api/client/deposit', 'POST', {
                 accountId: getUser().id,
@@ -274,17 +330,27 @@
             if (data.success) {
                 showToast('✅ Dépôt effectué !');
                 closeModal('deposit');
+                document.getElementById('depositAmount').value = '';
+                document.getElementById('depositDesc').value = '';
                 loadClientData();
             } else {
                 showToast('❌ ' + (data.error || 'Erreur'), 'error');
             }
         }
 
-        // Retrait
+        // ============================================================
+        // RETRAIT
+        // ============================================================
+
         async function executeWithdraw(e) {
             e.preventDefault();
             const amount = parseFloat(document.getElementById('withdrawAmount').value);
             const description = document.getElementById('withdrawDesc').value || 'Retrait';
+
+            if (isNaN(amount) || amount <= 0) {
+                showToast('❌ Montant invalide', 'error');
+                return;
+            }
 
             const data = await apiRequest('/api/client/withdraw', 'POST', {
                 accountId: getUser().id,
@@ -295,25 +361,57 @@
             if (data.success) {
                 showToast('✅ Retrait effectué !');
                 closeModal('withdraw');
+                document.getElementById('withdrawAmount').value = '';
+                document.getElementById('withdrawDesc').value = '';
                 loadClientData();
             } else {
                 showToast('❌ ' + (data.error || 'Erreur'), 'error');
             }
         }
 
-        // Virement
+        // ============================================================
+        // VIREMENT (par email)
+        // ============================================================
+
         async function executeTransfer(e) {
             e.preventDefault();
-            const toEmail = document.getElementById('transferTo').value;
+            const toEmail = document.getElementById('transferTo').value.trim();
             const amount = parseFloat(document.getElementById('transferAmount').value);
             const description = document.getElementById('transferDesc').value || 'Virement';
 
-            // Récupérer les comptes pour trouver le destinataire
-            const accounts = await apiRequest('/api/admin/accounts');
-            const toAccount = accounts.data?.find(a => a.clientEmail === toEmail);
+            if (!toEmail) {
+                showToast('❌ Veuillez entrer un email destinataire', 'error');
+                return;
+            }
+
+            if (isNaN(amount) || amount <= 0) {
+                showToast('❌ Montant invalide', 'error');
+                return;
+            }
+
+            // Récupérer tous les comptes pour trouver le destinataire
+            const accountsResponse = await apiRequest('/api/admin/accounts');
+            if (!accountsResponse.success) {
+                showToast('❌ Erreur lors de la recherche du destinataire', 'error');
+                return;
+            }
+
+            const toAccount = accountsResponse.data?.find(a => a.clientEmail === toEmail);
             
             if (!toAccount) {
-                showToast('❌ Destinataire non trouvé', 'error');
+                showToast('❌ Destinataire non trouvé. Vérifiez l\'email.', 'error');
+                return;
+            }
+
+            // Vérifier que le destinataire n'est pas le même compte
+            if (toAccount.id === getUser().id) {
+                showToast('❌ Impossible de virer vers votre propre compte', 'error');
+                return;
+            }
+
+            // Vérifier que le destinataire est actif
+            if (toAccount.status !== 'active') {
+                showToast('❌ Le compte destinataire est inactif', 'error');
                 return;
             }
 
@@ -325,13 +423,20 @@
             });
 
             if (data.success) {
-                showToast('✅ Virement effectué !');
+                showToast(`✅ Virement de ${amount.toLocaleString()} XAF à ${toAccount.clientName} effectué !`);
                 closeModal('transfer');
+                document.getElementById('transferTo').value = '';
+                document.getElementById('transferAmount').value = '';
+                document.getElementById('transferDesc').value = '';
                 loadClientData();
             } else {
                 showToast('❌ ' + (data.error || 'Erreur'), 'error');
             }
         }
+
+        // ============================================================
+        // INITIALISATION
+        // ============================================================
 
         // Vérification de session
         if (!getToken()) {

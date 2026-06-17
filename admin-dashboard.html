@@ -135,8 +135,52 @@
         </div>
     </div>
 
+    <!-- Modal Virement Admin -->
+    <div id="modal-admin-transfer" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full">
+            <h3 class="text-xl font-bold mb-4">🔄 Virement Admin</h3>
+            <form onsubmit="executeAdminTransfer(event)">
+                <input type="hidden" id="adminTransferFrom">
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Compte source</label>
+                    <input type="text" id="adminTransferFromDisplay" disabled
+                           class="w-full border border-gray-300 rounded-xl px-4 py-3 bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email du destinataire</label>
+                    <input type="email" id="adminTransferTo" placeholder="email@destinataire.com" required
+                           class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Montant (XAF)</label>
+                    <input type="number" id="adminTransferAmount" placeholder="Montant" required min="100" step="100"
+                           class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <input type="text" id="adminTransferDesc" placeholder="Description (optionnel)"
+                           class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="bg-purple-600 text-white px-6 py-2 rounded-xl flex-1 hover:bg-purple-700">
+                        <i class="fas fa-exchange-alt mr-2"></i> Effectuer
+                    </button>
+                    <button type="button" onclick="closeModal('admin-transfer')" class="bg-gray-300 px-6 py-2 rounded-xl hover:bg-gray-400">
+                        Annuler
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         const API_URL = 'https://banque-api-45tc.onrender.com';
+
+        let accounts = [];
+
+        // ============================================================
+        // UTILITAIRES
+        // ============================================================
 
         function getToken() { return localStorage.getItem('token'); }
         function getUser() { return JSON.parse(localStorage.getItem('user') || '{}'); }
@@ -163,6 +207,10 @@
             setTimeout(() => toast.remove(), 4000);
         }
 
+        // ============================================================
+        // API REQUEST
+        // ============================================================
+
         async function apiRequest(endpoint, method = 'GET', body = null) {
             const token = getToken();
             const options = {
@@ -183,6 +231,10 @@
             }
         }
 
+        // ============================================================
+        // CHARGEMENT DES COMPTES
+        // ============================================================
+
         async function loadAccounts() {
             const type = document.getElementById('filterType').value;
             const status = document.getElementById('filterStatus').value;
@@ -194,7 +246,7 @@
             if (params.length) url += '?' + params.join('&');
 
             const data = await apiRequest(url);
-            const accounts = data.data || [];
+            accounts = data.data || [];
             
             // Stats
             document.getElementById('totalAccounts').textContent = accounts.length;
@@ -232,12 +284,15 @@
                         </span>
                     </td>
                     <td class="px-6 py-4">
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 flex-wrap">
                             <button onclick="adminDeposit('${a.id}')" class="text-green-600 hover:text-green-800" title="Dépôt">
                                 <i class="fas fa-arrow-down"></i>
                             </button>
                             <button onclick="adminWithdraw('${a.id}')" class="text-red-600 hover:text-red-800" title="Retrait">
                                 <i class="fas fa-arrow-up"></i>
+                            </button>
+                            <button onclick="openAdminTransfer('${a.id}')" class="text-purple-600 hover:text-purple-800" title="Virement">
+                                <i class="fas fa-exchange-alt"></i>
                             </button>
                             <button onclick="adminDelete('${a.id}')" class="text-red-500 hover:text-red-700" title="Supprimer">
                                 <i class="fas fa-trash"></i>
@@ -247,6 +302,10 @@
                 </tr>
             `).join('');
         }
+
+        // ============================================================
+        // CRÉATION DE COMPTE (ADMIN)
+        // ============================================================
 
         async function adminCreateAccount(e) {
             e.preventDefault();
@@ -268,6 +327,10 @@
             }
         }
 
+        // ============================================================
+        // DÉPÔT (ADMIN)
+        // ============================================================
+
         async function adminDeposit(id) {
             const amount = prompt('Montant du dépôt (XAF):');
             if (!amount || isNaN(amount)) return;
@@ -283,6 +346,10 @@
                 showToast('❌ ' + (data.error || 'Erreur'), 'error');
             }
         }
+
+        // ============================================================
+        // RETRAIT (ADMIN)
+        // ============================================================
 
         async function adminWithdraw(id) {
             const amount = prompt('Montant du retrait (XAF):');
@@ -300,6 +367,62 @@
             }
         }
 
+        // ============================================================
+        // VIREMENT (ADMIN)
+        // ============================================================
+
+        function openAdminTransfer(fromId) {
+            const account = accounts.find(a => a.id === fromId);
+            if (!account) {
+                showToast('❌ Compte non trouvé', 'error');
+                return;
+            }
+            
+            document.getElementById('adminTransferFrom').value = fromId;
+            document.getElementById('adminTransferFromDisplay').value = 
+                `${account.clientName} (${account.accountNumber}) - ${account.balance.toLocaleString()} XAF`;
+            openModal('admin-transfer');
+        }
+
+        async function executeAdminTransfer(e) {
+            e.preventDefault();
+            const fromId = document.getElementById('adminTransferFrom').value;
+            const toEmail = document.getElementById('adminTransferTo').value.trim();
+            const amount = parseFloat(document.getElementById('adminTransferAmount').value);
+            const description = document.getElementById('adminTransferDesc').value || 'Virement administrateur';
+
+            // Trouver le destinataire
+            const toAccount = accounts.find(a => a.clientEmail === toEmail);
+            if (!toAccount) {
+                showToast('❌ Destinataire non trouvé', 'error');
+                return;
+            }
+
+            if (toAccount.id === fromId) {
+                showToast('❌ Impossible de virer vers le même compte', 'error');
+                return;
+            }
+
+            const data = await apiRequest('/api/admin/transfer', 'POST', {
+                fromAccountId: fromId,
+                toAccountId: toAccount.id,
+                amount,
+                description
+            });
+
+            if (data.success) {
+                showToast('✅ Virement effectué !');
+                closeModal('admin-transfer');
+                loadAccounts();
+            } else {
+                showToast('❌ ' + (data.error || 'Erreur'), 'error');
+            }
+        }
+
+        // ============================================================
+        // SUPPRESSION (ADMIN)
+        // ============================================================
+
         async function adminDelete(id) {
             if (!confirm('Confirmer la suppression du compte ?')) return;
             const data = await apiRequest(`/api/admin/accounts/${id}`, 'DELETE');
@@ -310,6 +433,10 @@
                 showToast('❌ ' + (data.error || 'Erreur'), 'error');
             }
         }
+
+        // ============================================================
+        // INITIALISATION
+        // ============================================================
 
         // Vérification de session
         if (!getToken()) {
