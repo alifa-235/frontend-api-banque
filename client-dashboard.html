@@ -190,10 +190,6 @@
     </div>
 
     <script>
-        // ============================================================
-        // CONFIGURATION
-        // ============================================================
-
         const API_URL = 'https://banque-api-45tc.onrender.com';
 
         // ============================================================
@@ -256,14 +252,12 @@
         async function loadClientData() {
             const user = getUser();
             
-            // Afficher les infos utilisateur
             document.getElementById('userName').textContent = user.name || 'Client';
             document.getElementById('clientName').textContent = user.name || '-';
             document.getElementById('clientEmail').textContent = user.email || '-';
             document.getElementById('accountType').textContent = user.type || '-';
             document.getElementById('accountNumber').textContent = `Compte n° ${user.accountNumber || '-'}`;
             
-            // Statut
             const statusElement = document.getElementById('accountStatus');
             if (user.status === 'active') {
                 statusElement.innerHTML = '<span class="text-green-600">✓ Actif</span>';
@@ -271,7 +265,6 @@
                 statusElement.innerHTML = '<span class="text-red-600">✗ Inactif</span>';
             }
 
-            // Récupérer les données du compte
             const data = await apiRequest('/api/client/me');
             if (data.success) {
                 const account = data.data;
@@ -370,7 +363,7 @@
         }
 
         // ============================================================
-        // VIREMENT (par email)
+        // VIREMENT (avec recherche publique)
         // ============================================================
 
         async function executeTransfer(e) {
@@ -389,48 +382,50 @@
                 return;
             }
 
-            // Récupérer tous les comptes pour trouver le destinataire
-            const accountsResponse = await apiRequest('/api/admin/accounts');
-            if (!accountsResponse.success) {
-                showToast('❌ Erreur lors de la recherche du destinataire', 'error');
-                return;
-            }
+            try {
+                // ✅ Route publique pour trouver le destinataire
+                const response = await fetch(`${API_URL}/api/find-account?email=${encodeURIComponent(toEmail)}`);
+                const result = await response.json();
 
-            const toAccount = accountsResponse.data?.find(a => a.clientEmail === toEmail);
-            
-            if (!toAccount) {
-                showToast('❌ Destinataire non trouvé. Vérifiez l\'email.', 'error');
-                return;
-            }
+                if (!result.success) {
+                    showToast('❌ Destinataire non trouvé. Vérifiez l\'email.', 'error');
+                    return;
+                }
 
-            // Vérifier que le destinataire n'est pas le même compte
-            if (toAccount.id === getUser().id) {
-                showToast('❌ Impossible de virer vers votre propre compte', 'error');
-                return;
-            }
+                const toAccount = result.data;
 
-            // Vérifier que le destinataire est actif
-            if (toAccount.status !== 'active') {
-                showToast('❌ Le compte destinataire est inactif', 'error');
-                return;
-            }
+                // Vérifications
+                if (toAccount.id === getUser().id) {
+                    showToast('❌ Impossible de virer vers votre propre compte', 'error');
+                    return;
+                }
 
-            const data = await apiRequest('/api/client/transfer', 'POST', {
-                fromAccountId: getUser().id,
-                toAccountId: toAccount.id,
-                amount,
-                description
-            });
+                if (toAccount.status !== 'active') {
+                    showToast('❌ Le compte destinataire est inactif', 'error');
+                    return;
+                }
 
-            if (data.success) {
-                showToast(`✅ Virement de ${amount.toLocaleString()} XAF à ${toAccount.clientName} effectué !`);
-                closeModal('transfer');
-                document.getElementById('transferTo').value = '';
-                document.getElementById('transferAmount').value = '';
-                document.getElementById('transferDesc').value = '';
-                loadClientData();
-            } else {
-                showToast('❌ ' + (data.error || 'Erreur'), 'error');
+                // Effectuer le virement
+                const data = await apiRequest('/api/client/transfer', 'POST', {
+                    fromAccountId: getUser().id,
+                    toAccountId: toAccount.id,
+                    amount,
+                    description
+                });
+
+                if (data.success) {
+                    showToast(`✅ Virement de ${amount.toLocaleString()} XAF à ${toAccount.clientName} effectué !`);
+                    closeModal('transfer');
+                    document.getElementById('transferTo').value = '';
+                    document.getElementById('transferAmount').value = '';
+                    document.getElementById('transferDesc').value = '';
+                    loadClientData();
+                } else {
+                    showToast('❌ ' + (data.error || 'Erreur'), 'error');
+                }
+            } catch (error) {
+                console.error('Erreur virement:', error);
+                showToast('❌ Erreur lors du virement', 'error');
             }
         }
 
@@ -438,7 +433,6 @@
         // INITIALISATION
         // ============================================================
 
-        // Vérification de session
         if (!getToken()) {
             window.location.href = 'login.html';
         }
