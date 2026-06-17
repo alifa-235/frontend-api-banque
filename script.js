@@ -1,10 +1,10 @@
 // script.js
 
 // =====================================================
-// CONFIGURATION
+// CONFIGURATION - URL de l'API sur Render
 // =====================================================
 
-// Remplacez par l'URL de votre API déployée
+// ✅ REMPLACEZ PAR VOTRE URL RENDER EXACTE
 const API_BASE_URL = 'https://banque-api-45tc.onrender.com';
 
 // =====================================================
@@ -47,7 +47,7 @@ function getAccountName(account) {
 }
 
 // =====================================================
-// API APPELS
+// API APPELS - Utilise API_BASE_URL
 // =====================================================
 
 async function apiRequest(endpoint, method = 'GET', body = null) {
@@ -196,7 +196,6 @@ function updateStats() {
 }
 
 function populateSelects() {
-    // Pour les modals, on remplit les selects avec les comptes actifs
     const activeAccounts = accounts.filter(a => a.status === 'active');
     const selects = ['depositAccount', 'withdrawAccount', 'transferFrom', 'transferTo'];
     selects.forEach(id => {
@@ -329,7 +328,6 @@ function openTransfer(accountId) {
     populateSelects();
     if (accountId) {
         document.getElementById('transferFrom').value = accountId;
-        // On ne peut pas virer vers le même compte
         const toSelect = document.getElementById('transferTo');
         const options = toSelect.querySelectorAll('option');
         options.forEach(opt => {
@@ -405,7 +403,6 @@ async function viewHistory(accountId) {
             </div>
         `).join('');
 
-    // Afficher un modal d'historique
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 modal-overlay flex items-center justify-center z-50';
     modal.innerHTML = `
@@ -477,7 +474,6 @@ function refreshData() {
 document.addEventListener('DOMContentLoaded', () => {
     loadAccounts();
 
-    // Fermeture des modals par clic sur l'overlay
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) {
@@ -486,7 +482,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Remplir les selects quand les modals s'ouvrent
     document.querySelectorAll('[id^="modal-"]').forEach(modal => {
         const observer = new MutationObserver(() => {
             if (!modal.classList.contains('hidden')) {

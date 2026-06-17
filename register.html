@@ -1,3 +1,4 @@
+<!-- register.html - Version simplifiée -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -7,12 +8,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center">
     <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full">
         <div class="text-center mb-6">
             <div class="text-5xl mb-2">📝</div>
-            <h1 class="text-2xl font-bold text-gray-800">Créer un compte</h1>
-            <p class="text-gray-500 text-sm">Inscrivez-vous gratuitement</p>
+            <h1 class="text-2xl font-bold text-gray-800">Créer un compte client</h1>
+            <p class="text-gray-500 text-sm">Inscrivez-vous pour accéder à vos services bancaires</p>
         </div>
 
         <form id="registerForm" class="space-y-4">
@@ -42,14 +43,7 @@
                     <option value="epargne">Épargne</option>
                 </select>
             </div>
-            <div id="adminField" class="hidden">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
-                <select id="role" 
-                        class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="client">Client</option>
-                    <option value="admin">Administrateur</option>
-                </select>
-            </div>
+            <!-- ✅ Le champ 'role' a été SUPPRIMÉ -->
 
             <button type="submit" 
                     class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition">
@@ -67,15 +61,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://banque-api-45tc.onrender.com';
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const role = urlParams.get('role') || 'client';
-
-        if (role === 'admin') {
-            document.getElementById('adminField').classList.remove('hidden');
-            document.querySelector('#adminField select').value = 'admin';
-        }
+        const API_URL = 'https://banque-api.onrender.com';
 
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -83,14 +69,19 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const type = document.getElementById('type').value;
-            const role = document.getElementById('role')?.value || 'client';
             const errorDiv = document.getElementById('errorMessage');
 
             try {
+                // ✅ Role 'client' est FORCÉ côté serveur, donc on ne l'envoie pas
                 const response = await fetch(`${API_URL}/api/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ clientName: name, clientEmail: email, password, type, role })
+                    body: JSON.stringify({ 
+                        clientName: name, 
+                        clientEmail: email, 
+                        password, 
+                        type 
+                    })
                 });
 
                 const data = await response.json();
@@ -99,11 +90,8 @@
                     localStorage.setItem('token', data.data.token);
                     localStorage.setItem('user', JSON.stringify(data.data.user));
                     
-                    if (data.data.user.role === 'admin') {
-                        window.location.href = 'admin-dashboard.html';
-                    } else {
-                        window.location.href = 'client-dashboard.html';
-                    }
+                    // ✅ Rediriger vers le dashboard client
+                    window.location.href = 'client-dashboard.html';
                 } else {
                     errorDiv.textContent = data.error || 'Erreur d\'inscription';
                     errorDiv.classList.remove('hidden');

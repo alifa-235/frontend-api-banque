@@ -47,44 +47,40 @@
     <script>
         // Configuration - À MODIFIER AVEC VOTRE URL RENDER
         const API_URL = 'https://banque-api-45tc.onrender.com';
-
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('errorMessage');
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const errorDiv = document.getElementById('errorMessage');
 
-            try {
-                const response = await fetch(`${API_URL}/api/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ clientEmail: email, password })
-                });
+        try {
+            const response = await fetch(`${API_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ clientEmail: email, password })
+            });
 
-                const data = await response.json();
+            const data = await response.json();
 
-                if (data.success) {
-                    localStorage.setItem('token', data.data.token);
-                    localStorage.setItem('user', JSON.stringify(data.data.user));
-                    
-                    if (data.data.user.role === 'admin') {
-                        window.location.href = 'admin-dashboard.html';
-                    } else {
-                        window.location.href = 'client-dashboard.html';
-                    }
-                } else {
-                    errorDiv.textContent = data.error || 'Erreur de connexion';
-                    errorDiv.classList.remove('hidden');
-                }
-            } catch (error) {
-                errorDiv.textContent = 'Erreur réseau. Vérifiez votre connexion.';
-                errorDiv.classList.remove('hidden');
+            if (data.success) {
+            localStorage.setItem('token', data.data.token);
+            localStorage.setItem('user', JSON.stringify(data.data.user));
+            
+            const userRole = data.data.user.role;
+            if (userRole === 'admin') {
+                window.location.href = 'admin-dashboard.html';
+            } else {
+                window.location.href = 'client-dashboard.html';
             }
+            } else {
+            errorDiv.textContent = data.error || 'Erreur de connexion';
+            errorDiv.classList.remove('hidden');
+            }
+        } catch (error) {
+            errorDiv.textContent = 'Erreur réseau. Vérifiez votre connexion.';
+            errorDiv.classList.remove('hidden');
+        }
         });
-
-        // Récupérer le rôle depuis l'URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const role = urlParams.get('role') || 'client';
     </script>
 </body>
 </html>
