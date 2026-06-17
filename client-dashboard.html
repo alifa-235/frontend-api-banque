@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace Client - MaBanque</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <span class="text-2xl font-bold text-blue-600">🏦 MaBanque</span>
+            <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">Client</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span id="userName" class="text-gray-700 font-medium"></span>
+            <button onclick="logout()" class="text-red-600 hover:text-red-800">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </button>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-6">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">👤 Mon espace client</h1>
+                <p class="text-gray-500" id="accountInfo">Compte courant</p>
+            </div>
+            <button onclick="loadClientData()" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition">
+                <i class="fas fa-sync-alt"></i> Rafraîchir
+            </button>
+        </div>
+
+        <!-- Carte de solde -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-6 text-white mb-6 shadow-xl">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-blue-200 text-sm">Solde disponible</p>
+                    <p class="text-4xl font-bold" id="balance">0 XAF</p>
+                    <p class="text-blue-200 text-sm mt-2" id="accountNumber">Compte n° -</p>
+                </div>
+                <div class="bg-white/20 p-3 rounded-xl">
+                    <i class="fas fa-wallet text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions rapides -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <button onclick="openModal('deposit')" class="bg-green-100 hover:bg-green-200 text-green-700 p-4 rounded-xl transition text-center">
+                <i class="fas fa-arrow-down text-2xl block mb-1"></i>
+                <span class="text-sm font-medium">Dépôt</span>
+            </button>
+            <button onclick="openModal('withdraw')" class="bg-red-100 hover:bg-red-200 text-red-700 p-4 rounded-xl transition text-center">
+                <i class="fas fa-arrow-up text-2xl block mb-1"></i>
+                <span class="text-sm font-medium">Retrait</span>
+            </button>
+            <button onclick="openModal('transfer')" class="bg-purple-100 hover:bg-purple-200 text-purple-700 p-4 rounded-xl transition text-center">
+                <i class="fas fa-exchange-alt text-2xl block mb-1"></i>
+                <span class="text-sm font-medium">Virement</span>
+            </button>
+            <button onclick="viewHistory()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 p-4 rounded-xl transition text-center">
+                <i class="fas fa-history text-2xl block mb-1"></i>
+                <span class="text-sm font-medium">Historique</span>
+            </button>
+        </div>
+
+        <!-- Informations du compte -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">
+                <i class="fas fa-user-circle text-blue-600 mr-2"></i>
+                Mes informations
+            </h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-500">Nom</p>
+                    <p class="font-medium" id="clientName">-</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Email</p>
+                    <p class="font-medium" id="clientEmail">-</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Type de compte</p>
+                    <p class="font-medium capitalize" id="accountType">-</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Statut</p>
+                    <p class="font-medium" id="accountStatus">-</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODALS ===== -->
+
+    <!-- Modal Dépôt -->
+    <div id="modal-deposit" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full">
+            <h3 class="text-xl font-bold mb-4">💰 Dépôt</h3>
+            <form onsubmit="executeDeposit(event)">
+                <input type="number" id="depositAmount" placeholder="Montant" required min="100" step="100"
+                       class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
+                <input type="text" id="depositDesc" placeholder="Description (optionnel)"
+                       class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
+                <div class="flex gap-2">
+                    <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-xl flex-1 hover:bg-green-700">Effectuer</button>
+                    <button type="button" onclick="closeModal('deposit')" class="bg-gray-300 px-6 py-2 rounded-xl hover:bg-gray-400">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Retrait -->
+    <div id="modal-withdraw" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full">
+            <h3 class="text-xl font-bold mb-4">🏦 Retrait</h3>
+            <form onsubmit="executeWithdraw(event)">
+                <input type="number" id="withdrawAmount" placeholder="Montant" required min="100" step="100"
+                       class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
+                <input type="text" id="withdrawDesc" placeholder="Description (optionnel)"
+                       class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
+                <div class="flex gap-2">
+                    <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded-xl flex-1 hover:bg-red-700">Effectuer</button>
+                    <button type="button" onclick="closeModal('withdraw')" class="bg-gray-300 px-6 py-2 rounded-xl hover:bg-gray-400">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Virement -->
+    <div id="modal-transfer" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full">
+            <h3 class="text-xl font-bold mb-4">🔄 Virement</h3>
+            <form onsubmit="executeTransfer(event)">
+                <input type="text" id="transferTo" placeholder="Email du destinataire" required
+                       class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
+                <input type="number" id="transferAmount" placeholder="Montant" required min="100" step="100"
+                       class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
+                <input type="text" id="transferDesc" placeholder="Description (optionnel)"
+                       class="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3">
+                <div class="flex gap-2">
+                    <button type="submit" class="bg-purple-600 text-white px-6 py-2 rounded-xl flex-1 hover:bg-purple-700">Effectuer</button>
+                    <button type="button" onclick="closeModal('transfer')" class="bg-gray-300 px-6 py-2 rounded-xl hover:bg-gray-400">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Historique -->
+    <div id="modal-history" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">📜 Historique des transactions</h3>
+                <button onclick="closeModal('history')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div id="historyList" class="space-y-2">
+                <p class="text-gray-500 text-center py-4">Chargement...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_URL = 'https://banque-api-45tc.onrender.com';
+
+        // Utilitaires
+        function getToken() { return localStorage.getItem('token'); }
+        function getUser() { return JSON.parse(localStorage.getItem('user') || '{}'); }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        function closeModal(name) {
+            document.getElementById(`modal-${name}`).classList.add('hidden');
+        }
+
+        function openModal(name) {
+            document.getElementById(`modal-${name}`).classList.remove('hidden');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `fixed top-4 right-4 p-4 rounded-xl text-white z-50 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        async function apiRequest(endpoint, method = 'GET', body = null) {
+            const token = getToken();
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            };
+            if (body) options.body = JSON.stringify(body);
+            
+            const response = await fetch(`${API_URL}${endpoint}`, options);
+            return await response.json();
+        }
+
+        // Chargement des données
+        async function loadClientData() {
+            const user = getUser();
+            
+            document.getElementById('userName').textContent = user.name || 'Client';
+            document.getElementById('clientName').textContent = user.name || '-';
+            document.getElementById('clientEmail').textContent = user.email || '-';
+            document.getElementById('accountType').textContent = user.type || '-';
+            document.getElementById('accountNumber').textContent = `Compte n° ${user.accountNumber || '-'}`;
+            
+            const statusElement = document.getElementById('accountStatus');
+            if (user.status === 'active') {
+                statusElement.innerHTML = '<span class="text-green-600">✓ Actif</span>';
+            } else {
+                statusElement.innerHTML = '<span class="text-red-600">✗ Inactif</span>';
+            }
+
+            const data = await apiRequest('/api/client/me');
+            if (data.success) {
+                document.getElementById('balance').textContent = data.data.balance.toLocaleString() + ' XAF';
+            }
+        }
+
+        // Historique
+        async function viewHistory() {
+            openModal('history');
+            const container = document.getElementById('historyList');
+            container.innerHTML = '<p class="text-gray-500 text-center py-4">Chargement...</p>';
+
+            const data = await apiRequest('/api/client/transactions?limit=20');
+            if (data.success && data.data.length > 0) {
+                container.innerHTML = data.data.map(t => `
+                    <div class="flex justify-between items-center p-3 border-b border-gray-100">
+                        <div>
+                            <p class="font-medium">${t.type === 'depot' ? '💰 Dépôt' : t.type === 'retrait' ? '🏦 Retrait' : '🔄 Virement'}</p>
+                            <p class="text-sm text-gray-500">${t.description || '—'} - ${new Date(t.date).toLocaleString()}</p>
+                        </div>
+                        <span class="font-bold ${t.type === 'depot' ? 'text-green-600' : t.type === 'retrait' ? 'text-red-600' : 'text-purple-600'}">
+                            ${t.type === 'depot' ? '+' : t.type === 'retrait' ? '-' : ''} ${t.amount.toLocaleString()} XAF
+                        </span>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">Aucune transaction</p>';
+            }
+        }
+
+        // Dépôt
+        async function executeDeposit(e) {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('depositAmount').value);
+            const description = document.getElementById('depositDesc').value || 'Dépôt';
+
+            const data = await apiRequest('/api/client/deposit', 'POST', {
+                accountId: getUser().id,
+                amount,
+                description
+            });
+
+            if (data.success) {
+                showToast('✅ Dépôt effectué !');
+                closeModal('deposit');
+                loadClientData();
+            } else {
+                showToast('❌ ' + (data.error || 'Erreur'), 'error');
+            }
+        }
+
+        // Retrait
+        async function executeWithdraw(e) {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            const description = document.getElementById('withdrawDesc').value || 'Retrait';
+
+            const data = await apiRequest('/api/client/withdraw', 'POST', {
+                accountId: getUser().id,
+                amount,
+                description
+            });
+
+            if (data.success) {
+                showToast('✅ Retrait effectué !');
+                closeModal('withdraw');
+                loadClientData();
+            } else {
+                showToast('❌ ' + (data.error || 'Erreur'), 'error');
+            }
+        }
+
+        // Virement
+        async function executeTransfer(e) {
+            e.preventDefault();
+            const toEmail = document.getElementById('transferTo').value;
+            const amount = parseFloat(document.getElementById('transferAmount').value);
+            const description = document.getElementById('transferDesc').value || 'Virement';
+
+            // Récupérer les comptes pour trouver le destinataire
+            const accounts = await apiRequest('/api/admin/accounts');
+            const toAccount = accounts.data?.find(a => a.clientEmail === toEmail);
+            
+            if (!toAccount) {
+                showToast('❌ Destinataire non trouvé', 'error');
+                return;
+            }
+
+            const data = await apiRequest('/api/client/transfer', 'POST', {
+                fromAccountId: getUser().id,
+                toAccountId: toAccount.id,
+                amount,
+                description
+            });
+
+            if (data.success) {
+                showToast('✅ Virement effectué !');
+                closeModal('transfer');
+                loadClientData();
+            } else {
+                showToast('❌ ' + (data.error || 'Erreur'), 'error');
+            }
+        }
+
+        // Vérification de session
+        if (!getToken()) {
+            window.location.href = 'login.html';
+        }
+
+        loadClientData();
+    </script>
+</body>
+</html>
